@@ -7,6 +7,12 @@ const shortenUrl = async (req, res) => {
         return res.status(400).json({ error: 'Original URL is required' });
     }
 
+    const existingUrl = await UrlModel.findOne({ originalUrl }).lean();
+    if (existingUrl) {
+        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+        return res.status(200).json({ shortUrl: `${baseUrl}/${existingUrl.shortUrl}` });
+    }
+
     const shortUrl = nanoid.nanoid(8);
     const newUrl = new UrlModel({ originalUrl, shortUrl });
 

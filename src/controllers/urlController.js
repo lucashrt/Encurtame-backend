@@ -1,5 +1,6 @@
 const nanoid = require('nanoid');
 const UrlModel = require('../models/urlSchema');
+const isUrlSafe = require('../service/safeBrowsingservice');
 
 const shortenUrl = async (req, res) => {
     const { originalUrl } = req.body;
@@ -11,6 +12,19 @@ const shortenUrl = async (req, res) => {
     if (existingUrl) {
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
         return res.status(200).json({ shortUrl: `${baseUrl}/${existingUrl.shortUrl}` });
+    }
+
+    const { isSafe, threats, error } = await isUrlSafe(originalUrl);
+
+    if (error) {
+        return res.status(503).json({ error: 'Error checking URL.' });
+    }
+
+    if (!isSafe) {
+        return res.status(403).json({
+            error: 'The provided URL is potentially malicious.',
+            threats
+        });
     }
 
     const shortUrl = nanoid.nanoid(8);

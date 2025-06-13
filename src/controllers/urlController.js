@@ -1,6 +1,7 @@
 const nanoid = require('nanoid');
-const UrlModel = require('../models/urlSchema');
-const isUrlSafe = require('../service/safeBrowsingservice');
+const UrlModel = require('../models/urlSchema.js');
+const Sentry = require('../sentry/instrument.js');
+const isUrlSafe = require('../service/safeBrowsingservice.js');
 
 const shortenUrl = async (req, res) => {
     const { originalUrl } = req.body;
@@ -17,6 +18,7 @@ const shortenUrl = async (req, res) => {
     const { isSafe, threats, error } = await isUrlSafe(originalUrl);
 
     if (error) {
+        Sentry.captureException(error);
         return res.status(503).json({ error: 'Error checking URL.' });
     }
 
@@ -35,6 +37,7 @@ const shortenUrl = async (req, res) => {
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
         res.status(201).json({ shortUrl: `${baseUrl}/${shortUrl}` });
     } catch (error) {
+        Sentry.captureException(error);
         res.status(500).json({ error: 'Error saving URL' });
     }
 };
@@ -48,6 +51,7 @@ const redirectUrl = async (req, res) => {
         }
         res.status(302).redirect(url.originalUrl);
     } catch (error) {
+        Sentry.captureException(error);
         res.status(500).json({ error: 'Error redirecting to URL' });
     }
 };

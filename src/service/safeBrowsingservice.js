@@ -31,7 +31,13 @@ async function isUrlSafe(urlToCheck) {
             error: false
         };
     } catch (err) {
-        console.error("Error in Safe Browsing:", err.message);
+        console.error("Error in Safe Browsing:", {
+            message: err.message,
+            code: err.code,
+            status: err.response?.status,
+            data: err.response?.data,
+            stack: err.stack,
+        });
         return { isSafe: false, threats: [], error: true };
     }
 }

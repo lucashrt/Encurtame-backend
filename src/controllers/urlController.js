@@ -16,17 +16,15 @@ const shortenUrl = async (req, res) => {
     }
 
     const { isSafe, threats, error } = await isUrlSafe(originalUrl);
-
-    if (error) {
-        Sentry.captureException(error);
-        return res.status(503).json({ error: 'Error checking URL.' });
-    }
-
     if (!isSafe) {
         return res.status(403).json({
             error: 'The provided URL is potentially malicious.',
             threats
         });
+    }
+    if (error) {
+        Sentry.captureException(error);
+        return res.status(503).json({ error: 'Error checking URL.' });
     }
 
     const shortUrl = nanoid.nanoid(8);
@@ -47,7 +45,8 @@ const redirectUrl = async (req, res) => {
     try {
         const url = await UrlModel.findOne({ shortUrl });
         if (!url) {
-            return res.status(404).json({ error: 'URL not found' });
+            const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+            return res.status(404).redirect(`${baseUrl}/not-found`);
         }
         res.status(302).redirect(url.originalUrl);
     } catch (error) {

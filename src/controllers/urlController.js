@@ -2,6 +2,7 @@ const nanoid = require('nanoid');
 const UrlModel = require('../models/urlSchema.js');
 const Sentry = require('../sentry/instrument.js');
 const isUrlSafe = require('../service/safeBrowsingservice.js');
+const redisClient = require('../cache/redisClient.js');
 
 const shortenUrl = async (req, res) => {
     const { originalUrl } = req.body;
@@ -9,8 +10,15 @@ const shortenUrl = async (req, res) => {
         return res.status(400).json({ error: 'Original URL is required' });
     }
 
+    const urlCheck = await redisClient.get(originalUrl);
+    if (urlCheck) {
+        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+        return res.status(200).json({ shortUrl: `${baseUrl}/${urlCheck}` });
+    }
+
     const existingUrl = await UrlModel.findOne({ originalUrl }).lean();
     if (existingUrl) {
+        await redisClient.set(originalUrl, existingUrl.shortUrl, { EX: 60 * 60 * 24 });
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
         return res.status(200).json({ shortUrl: `${baseUrl}/${existingUrl.shortUrl}` });
     }
@@ -32,6 +40,7 @@ const shortenUrl = async (req, res) => {
 
     try {
         await newUrl.save();
+        await redisClient.set(originalUrl, shortUrl, { EX: 60 * 60 * 24 });
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
         res.status(201).json({ shortUrl: `${baseUrl}/${shortUrl}` });
     } catch (error) {

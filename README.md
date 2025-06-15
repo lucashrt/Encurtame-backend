@@ -114,5 +114,11 @@ encurtame/
   "redis": "^5.5.6"
 }
 ```
+## Diagrama de Fluxo
+
+Abaixo está o fluxo de funcionamento do Encurtame, desde o recebimento da URL até a entrega do link encurtado:
+
+![Fluxo do Encurtame](https://i.imgur.com/iEnSiiv.png)
+
 
 Desenvolvido por **Lucas Hartmann**

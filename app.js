@@ -8,7 +8,10 @@ const urlRoutes = require('./src/routes/urlRoutes.js');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://lucashrt.github.io',
+    methods: ['GET', 'POST'],
+}));
 app.use(express.json());
 
 app.use('/', urlRoutes);

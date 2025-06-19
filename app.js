@@ -8,6 +8,7 @@ const urlRoutes = require('./src/routes/urlRoutes.js');
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(cors({
     origin: 'https://lucashrt.github.io',
     methods: ['GET', 'POST'],
